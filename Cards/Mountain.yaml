@@ -1,0 +1,4 @@
+name: Mountain
+type: Land
+subtypes: Mountain
+rules_text: "T: Add R to your mana pool"

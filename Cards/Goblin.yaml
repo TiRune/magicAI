@@ -1,0 +1,7 @@
+name: Goblin
+color: Red
+type: Creature
+subtypes: Goblin
+cmc: R
+power: 1
+toughness: 1
