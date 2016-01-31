@@ -45,6 +45,9 @@ class Card(object):
         self.power = input_dict.get('power',None)
         self.toughness = input_dict.get('toughness',None)
 
+        # TODO: remove this hack
+        self.cmc = len(self.cmc)
+
     def load_by_name(self, name):
         yaml_file = 'Cards/' + name + '.yaml'
         yaml_file_location = os.path.abspath(yaml_file)
