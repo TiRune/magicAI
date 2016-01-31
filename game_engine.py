@@ -39,7 +39,7 @@ class GameEngine:
                     if gamestate.player_played_land:
                         raise GameRuleViolation('Can\'t play two '
                                                 'lands in a turn')
-                    self.player_played_land = True
+                    gamestate.player_played_land = True
 
                 print performing_player.mana_pool
                 print card.cmc
@@ -51,16 +51,17 @@ class GameEngine:
                 performing_player.battlefield.append(move_card)
                 break
 
-    def action_use(self, card, player_num, gamestate):
+    def action_use(self, cards_to_use, player_num, gamestate):
         performing_player = gamestate.players[player_num]
         for i in range(len(performing_player.battlefield)):
-            if performing_player.battlefield[i] == card:
-                if card.tapped:
-                    raise GameRuleViolation('trying to use a card that '
-                                            'is already tapped')
-                if card.type == 'Land' and card.subtypes == 'Mountain':
-                    card.tapped = True
-                    performing_player.mana_pool += 1
+            for card in cards_to_use:
+                if performing_player.battlefield[i] == card:
+                    if card.tapped:
+                        raise GameRuleViolation('trying to use a card that '
+                                                'is already tapped')
+                    if card.type == 'Land' and card.subtypes == 'Mountain':
+                        card.tapped = True
+                        performing_player.mana_pool += 1
 
     def empty_all_manapools(self, gamestate):
         for player in gamestate.players:
@@ -80,9 +81,10 @@ class GameEngine:
 
     def handle_untap_step(self, gamestate):
         self.empty_all_manapools(gamestate)
-        for player in gamestate.players:
-            for card in player.battlefield:
-                card.tapped = False
+        player = self.current_player(gamestate)
+        for card in player.battlefield:
+            card.tapped = False
+            card.summoning_sickness = False
         return False
 
     def handle_upkeep_step(self, gamestate):
@@ -108,7 +110,7 @@ class GameEngine:
         return False
 
     def handle_declare_attackers(self, gamestate):
-        return False
+        return True
 
     def handle_declare_blockers(self, gamestate):
         return False
@@ -120,6 +122,10 @@ class GameEngine:
         return False
 
     def handle_postcombat_main_phase(self, gamestate):
+        # remove all creatures from combat
+        player = self.current_player(gamestate)
+        for card in player.battlefield:
+            card.attacking = False
         return False
 
     def handle_end_step(self, gamestate):
@@ -214,6 +220,20 @@ class GameEngine:
     def who_has_action(self, gamestate):
         return gamestate.player_turn
 
+    def can_attack(self, creature, gamestate):
+        if not creature.summoning_sickness:
+            return True
+        else:
+            return False
+
+    def action_attack(self, attackers, player, gamestate):
+        for creature in attackers:
+            if self.can_attack(creature, gamestate):
+                creature.attacking = True
+            else:
+                return GameRuleViolation(
+                        "Can't attack with {}".format(creature))
+
     def take_action(self, gamestate, action):
         print action
         if not action or action == "pass_priority":
@@ -225,4 +245,6 @@ class GameEngine:
         elif 'Use' in action:
                 self.action_use(action['Use'], action['player'], gamestate)
         elif 'Attack' in action:
-                pass
+                self.action_attack(action['Attack'], action['player'], gamestate)
+                self.next_phase(gamestate)
+                self.handle_phase_until_action(gamestate)

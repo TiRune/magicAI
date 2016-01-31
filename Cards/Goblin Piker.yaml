@@ -1,7 +1,7 @@
-name: Goblin
+name: Goblin Piker
 color: Red
 type: Creature
 subtypes: Goblin
-cmc: R
-power: 1
+cmc: RR
+power: 2
 toughness: 1

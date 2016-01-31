@@ -30,4 +30,4 @@ while not game_engine.game_over(gamestate):
     print "player_0_hand", gamestate.players[0].hand
     print "life: ", gamestate.players[0].life, "mana", gamestate.players[0].mana_pool, "library: ", len(gamestate.players[0].library)
 
-print "player_1 lost: ", gamestate.players[0].lost
+print "player_0 lost: ", gamestate.players[0].lost
